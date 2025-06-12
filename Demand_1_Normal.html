@@ -20,18 +20,24 @@
       width: 100%;
       max-width: 500px;
       height: 400px;
+      position: relative;
     }
     canvas {
       background-color: #f4f4f4;
       width: 100% !important;
       height: 100% !important;
+      display: block;
     }
-    .input-section, .questions {
+    .input-section {
       margin-top: 2rem;
     }
     label {
       display: block;
       margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    .slider-label {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -48,15 +54,19 @@
       </div>
     </div>
     <div class="input-section">
-      <label for="priceSlider"><strong>Price:</strong> <span id="priceVal">10</span></label>
+      <div>
+        <span class="slider-label">Price:</span>
+        <span id="priceVal">10</span>
+      </div>
       <input type="range" id="priceSlider" min="1" max="20" value="10">
 
-      <label for="incomeSlider"><strong>Consumer Income:</strong> <span id="incomeVal">$60,000</span></label>
+      <div style="margin-top:2em;">
+        <span class="slider-label">Consumer Income:</span>
+        <span id="incomeVal">$60,000</span>
+      </div>
       <input type="range" id="incomeSlider" min="40000" max="80000" step="1000" value="60000">
     </div>
   </div>
-
-
 
   <script>
     const ctx = document.getElementById('demandChart').getContext('2d');
@@ -65,7 +75,7 @@
       const baseIntercept = 20;
       const slope = 1;
 
-      // Convert income ($40k–$80k) to a shift factor centered at $60k
+      // Map income ($40k–$80k) to a shift centered at $60k
       const incomeShift = (income - 60000) / 4000;
       const intercept = baseIntercept + incomeShift;
 
@@ -76,4 +86,67 @@
       });
     }
 
-    const priceSlider = document.getElem
+    const priceSlider = document.getElementById('priceSlider');
+    const incomeSlider = document.getElementById('incomeSlider');
+    const priceVal = document.getElementById('priceVal');
+    const incomeVal = document.getElementById('incomeVal');
+
+    const chart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Demand Curve',
+          data: [],
+          showLine: true,
+          borderColor: 'blue',
+          backgroundColor: 'blue',
+          fill: false
+        }, {
+          label: 'Current Point',
+          data: [],
+          backgroundColor: 'red',
+          pointRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            title: { display: true, text: 'Quantity' },
+            min: 0,
+            max: 20
+          },
+          y: {
+            title: { display: true, text: 'Price' },
+            min: 0,
+            max: 20
+          }
+        }
+      }
+    });
+
+    function updateChart() {
+      const price = parseInt(priceSlider.value);
+      const income = parseInt(incomeSlider.value);
+      priceVal.textContent = price;
+      incomeVal.textContent = `$${income.toLocaleString()}`;
+
+      const incomeShift = (income - 60000) / 4000;
+      const intercept = 20 + incomeShift;
+      const quantity = Math.max(0, intercept - price);
+
+      chart.data.datasets[0].data = getDemandData(income);
+      chart.data.datasets[1].data = [{ x: quantity, y: price }];
+      chart.update();
+    }
+
+    // Initial chart render
+    updateChart();
+
+    priceSlider.addEventListener('input', updateChart);
+    incomeSlider.addEventListener('input', updateChart);
+  </script>
+</body>
+</html>
