@@ -38,7 +38,7 @@
 <body>
   <h1>Interactive Demand Curve Activity</h1>
 
-  <p>Use the sliders below to change the price of the good and external conditions. Observe how quantity demanded changes and whether the demand curve shifts or not.</p>
+  <p>Use the sliders below to change the price of the good and consumer income. Observe how quantity demanded changes and whether the demand curve shifts or not.</p>
 
   <div class="container">
     <div>
@@ -51,8 +51,8 @@
       <label for="priceSlider"><strong>Price:</strong> <span id="priceVal">10</span></label>
       <input type="range" id="priceSlider" min="1" max="20" value="10">
 
-      <label for="incomeChange"><strong>Consumer Income:</strong> <span id="incomeVal">0%</span></label>
-      <input type="range" id="incomeChange" min="-50" max="50" value="0">
+      <label for="incomeSlider"><strong>Consumer Income:</strong> <span id="incomeVal">$60,000</span></label>
+      <input type="range" id="incomeSlider" min="40000" max="80000" step="1000" value="60000">
     </div>
   </div>
 
@@ -61,10 +61,12 @@
   <script>
     const ctx = document.getElementById('demandChart').getContext('2d');
 
-    function getDemandData(incomePercent) {
-      const baseIntercept = 20; // baseline quantity when price = 0
+    function getDemandData(income) {
+      const baseIntercept = 20;
       const slope = 1;
-      const incomeShift = incomePercent / 5;
+
+      // Convert income ($40k–$80k) to a shift factor centered at $60k
+      const incomeShift = (income - 60000) / 4000;
       const intercept = baseIntercept + incomeShift;
 
       return Array.from({ length: 20 }, (_, i) => {
@@ -74,63 +76,4 @@
       });
     }
 
-    const priceSlider = document.getElementById('priceSlider');
-    const incomeSlider = document.getElementById('incomeChange');
-    const priceVal = document.getElementById('priceVal');
-    const incomeVal = document.getElementById('incomeVal');
-
-    const chart = new Chart(ctx, {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Demand Curve',
-          data: getDemandData(0),
-          showLine: true,
-          borderColor: 'blue',
-          backgroundColor: 'blue',
-          fill: false
-        }, {
-          label: 'Current Point',
-          data: [{ x: 10, y: 10 }],
-          backgroundColor: 'red',
-          pointRadius: 6,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            type: 'linear',
-            title: { display: true, text: 'Quantity' },
-            min: 0,
-            max: 20
-          },
-          y: {
-            title: { display: true, text: 'Price' },
-            min: 0,
-            max: 20
-          }
-        }
-      }
-    });
-
-    function updateChart() {
-      const price = parseInt(priceSlider.value);
-      const income = parseInt(incomeSlider.value);
-      priceVal.textContent = price;
-      incomeVal.textContent = `${income}%`;
-
-      const intercept = 20 + income / 5;
-      const quantity = Math.max(0, intercept - price);
-
-      chart.data.datasets[0].data = getDemandData(income);
-      chart.data.datasets[1].data = [{ x: quantity, y: price }];
-      chart.update();
-    }
-
-    priceSlider.addEventListener('input', updateChart);
-    incomeSlider.addEventListener('input', updateChart);
-  </script>
-</body>
-</html>
+    const priceSlider = document.getElem
