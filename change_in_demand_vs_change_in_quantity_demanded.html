@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Change in Demand vs. Change in Quantity Demanded</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    canvas { max-width: 600px; }
+    .slider-container { margin: 20px 0; }
+    .question { margin-top: 30px; }
+    .question label { display: block; margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Change in Demand vs. Change in Quantity Demanded</h1>
+
+  <canvas id="demandChart"></canvas>
+
+  <div class="slider-container">
+    <label>Price ($): <span id="priceVal">20000</span></label>
+    <input type="range" min="20000" max="60000" step="1000" value="20000" id="priceSlider" />
+  </div>
+
+  <div class="slider-container">
+    <label>Income ($): <span id="incomeVal">50000</span></label>
+    <input type="range" min="50000" max="100000" step="1000" value="50000" id="incomeSlider" />
+  </div>
+
+  <div class="slider-container">
+    <label>Price of Gasoline ($): <span id="tasteVal">3.00</span></label>
+    <input type="range" min="1.00" max="6.00" step="0.10" value="3.00" id="tasteSlider" />
+  </div>
+
+  <div class="question">
+    <h2>Questions</h2>
+    <p>1. If the price of the good changes, what type of change is this?</p>
+    <label><input type="radio" name="q1" value="quantity" /> Change in Quantity Demanded</label>
+    <label><input type="radio" name="q1" value="demand" /> Change in Demand</label>
+
+    <p>2. If income increases and demand increases, what type of change is this?</p>
+    <label><input type="radio" name="q2" value="quantity" /> Change in Quantity Demanded</label>
+    <label><input type="radio" name="q2" value="demand" /> Change in Demand</label>
+
+    <p>3. If the price of gasoline changes and this affects demand, what type of change is this?</p>
+    <label><input type="radio" name="q3" value="quantity" /> Change in Quantity Demanded</label>
+    <label><input type="radio" name="q3" value="demand" /> Change in Demand</label>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('demandChart').getContext('2d');
+
+    function generateDemandCurve(income, gasPrice) {
+      const incomeEffect = (income - 50000) / 5000;
+      const gasEffect = (3 - gasPrice) * 2; // higher gas price lowers demand
+      const intercept = 20000 + (incomeEffect + gasEffect) * 1000;
+      const slope = 2000;
+      const points = [];
+      for (let q = 0; q <= 20; q++) {
+        const p = intercept + slope * (20 - q);
+        points.push({ x: q, y: p });
+      }
+      return points;
+    }
+
+    const chart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Demand Curve',
+            data: generateDemandCurve(50000, 3),
+            borderColor: 'blue',
+            backgroundColor: 'blue',
+            showLine: true,
+            tension: 0
+          },
+          {
+            label: 'Selected Point',
+            data: [],
+            backgroundColor: 'red',
+            pointRadius: 6,
+            showLine: false
+          }
+        ]
+      },
+      options: {
+        scales: {
+          x: {
+            title: { display: true, text: 'Quantity' },
+            min: 0,
+            max: 20
+          },
+          y: {
+            title: { display: true, text: 'Price ($)' },
+            min: 20000,
+            max: 60000
+          }
+        }
+      }
+    });
+
+    function updateChart() {
+      const income = parseInt(document.getElementById('incomeSlider').value);
+      const gasPrice = parseFloat(document.getElementById('tasteSlider').value);
+      const price = parseInt(document.getElementById('priceSlider').value);
+
+      document.getElementById('incomeVal').textContent = income;
+      document.getElementById('tasteVal').textContent = gasPrice.toFixed(2);
+      document.getElementById('priceVal').textContent = price;
+
+      const newDemand = generateDemandCurve(income, gasPrice);
+      chart.data.datasets[0].data = newDemand;
+
+      let closestPoint = null;
+      let smallestDiff = Infinity;
+      for (let point of newDemand) {
+        const diff = Math.abs(point.y - price);
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          closestPoint = point;
+        }
+      }
+
+      chart.data.datasets[1].data = closestPoint ? [closestPoint] : [];
+      chart.update();
+    }
+
+    document.getElementById('priceSlider').addEventListener('input', updateChart);
+    document.getElementById('incomeSlider').addEventListener('input', updateChart);
+    document.getElementById('tasteSlider').addEventListener('input', updateChart);
+
+    updateChart();
+  </script>
+</body>
+</html>
